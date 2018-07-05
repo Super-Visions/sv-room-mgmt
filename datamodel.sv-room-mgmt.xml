@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0">
+	<classes>
+		<class id="Room" _delta="define">
+			<parent>cmdbAbstractObject</parent>
+			<properties>
+				<category>bizmodel,searchable,structure</category>
+				<abstract>false</abstract>
+				<key_type>autoincrement</key_type>
+				<db_table>room</db_table>
+				<naming>
+					<attributes>
+						<attribute id="name"/>
+					</attributes>
+				</naming>
+				<icon>images/room.png</icon>
+				<reconciliation>
+					<attributes>
+						<attribute id="name"/>
+						<attribute id="location_id"/>
+						<attribute id="location_name"/>
+						<attribute id="org_id"/>
+						<attribute id="org_name"/>
+					</attributes>
+				</reconciliation>
+			</properties>
+			<fields>
+				<field id="name" xsi:type="AttributeString">
+					<sql>name</sql>
+					<default_value/>
+					<is_null_allowed>false</is_null_allowed>
+				</field>
+				<field id="status" xsi:type="AttributeEnum">
+					<values>
+						<value id="active">active</value>
+						<value id="inactive">inactive</value>
+					</values>
+					<sql>status</sql>
+					<default_value>active</default_value>
+					<is_null_allowed>true</is_null_allowed>
+					<display_style>list</display_style>
+				</field>
+				<field id="org_id" xsi:type="AttributeExternalKey">
+					<sql>org_id</sql>
+					<target_class>Organization</target_class>
+					<is_null_allowed>false</is_null_allowed>
+					<on_target_delete>DEL_MANUAL</on_target_delete>
+				</field>
+				<field id="org_name" xsi:type="AttributeExternalField">
+					<extkey_attcode>org_id</extkey_attcode>
+					<target_attcode>name</target_attcode>
+				</field>
+				<field id="location_id" xsi:type="AttributeExternalKey">
+					<filter><![CDATA[SELECT l FROM Location AS l JOIN Organization AS root ON l.org_id=root.id JOIN Organization AS child ON child.parent_id BELOW root.id WHERE child.id= :this->org_id]]></filter>
+					<dependencies>
+						<attribute id="org_id"/>
+					</dependencies>
+					<sql>location_id</sql>
+					<target_class>Location</target_class>
+					<is_null_allowed>false</is_null_allowed>
+					<on_target_delete>DEL_MANUAL</on_target_delete>
+					<allow_target_creation>false</allow_target_creation>
+				</field>
+				<field id="location_name" xsi:type="AttributeExternalField">
+					<extkey_attcode>location_id</extkey_attcode>
+					<target_attcode>name</target_attcode>
+				</field>
+				<field id="floor" xsi:type="AttributeInteger">
+					<sql>floor</sql>
+					<default_value/>
+					<is_null_allowed>true</is_null_allowed>
+				</field>
+				<field id="physicaldevice_list" xsi:type="AttributeLinkedSet">
+					<linked_class>PhysicalDevice</linked_class>
+					<ext_key_to_me>room_id</ext_key_to_me>
+					<edit_mode>add_only</edit_mode>
+				</field>
+			</fields>
+			<methods/>
+			<presentation>
+				<details>
+					<items>
+						<item id="name">
+							<rank>10</rank>
+						</item>
+						<item id="status">
+							<rank>20</rank>
+						</item>
+						<item id="org_id">
+							<rank>30</rank>
+						</item>
+						<item id="location_id">
+							<rank>40</rank>
+						</item>
+						<item id="floor">
+							<rank>50</rank>
+						</item>
+						<item id="physicaldevice_list">
+							<rank>60</rank>
+						</item>
+					</items>
+				</details>
+				<search>
+					<items>
+						<item id="name">
+							<rank>10</rank>
+						</item>
+						<item id="status">
+							<rank>20</rank>
+						</item>
+						<item id="org_id">
+							<rank>30</rank>
+						</item>
+						<item id="location_id">
+							<rank>40</rank>
+						</item>
+						<item id="floor">
+							<rank>50</rank>
+						</item>
+					</items>
+				</search>
+				<list>
+					<items>
+						<item id="status">
+							<rank>10</rank>
+						</item>
+						<item id="org_id">
+							<rank>20</rank>
+						</item>
+						<item id="location_id">
+							<rank>30</rank>
+						</item>
+						<item id="floor">
+							<rank>40</rank>
+						</item>
+					</items>
+				</list>
+			</presentation>
+		</class>
+		<class id="Location" _created_in="itop-config-mgmt" _delta="must_exist">
+			<fields>
+				<field id="room_list" xsi:type="AttributeLinkedSet" _delta="define">
+					<linked_class>Room</linked_class>
+					<ext_key_to_me>location_id</ext_key_to_me>
+				</field>
+			</fields>
+			<presentation>
+				<details>
+					<items>
+						<item id="room_list" _delta="define">
+							<rank>85</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="PhysicalDevice" _created_in="itop-config-mgmt" _delta="must_exist">
+			<fields>
+				<field id="room_id" xsi:type="AttributeExternalKey" _delta="define">
+					<filter>SELECT Room WHERE location_id = :this->location_id</filter>
+					<dependencies>
+						<attribute id="location_id"/>
+					</dependencies>
+					<sql>room_id</sql>
+					<target_class>Room</target_class>
+					<is_null_allowed>true</is_null_allowed>
+					<on_target_delete>DEL_MANUAL</on_target_delete>
+					<allow_target_creation>true</allow_target_creation>
+				</field>
+			</fields>
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="DatacenterDevice" _created_in="itop-config-mgmt" _delta="must_exist">
+			<fields>
+				<field id="rack_id">
+					<filter _delta="redefine"><![CDATA[SELECT Rack WHERE room_id = :this->room_id]]></filter>
+					<dependencies _delta="redefine">
+						<attribute id="room_id"/>
+					</dependencies>
+				</field>
+			</fields>
+		</class>
+		<class id="NetworkDevice" _created_in="itop-config-mgmt" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="col:col1">
+							<items>
+								<item id="fieldset:Server:baseinfo">
+									<items>
+										<item id="room_id" _delta="define">
+											<rank>55</rank>
+										</item>
+									</items>
+								</item>
+							</items>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Server" _created_in="itop-config-mgmt" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="col:col1">
+							<items>
+								<item id="fieldset:Server:baseinfo">
+									<items>
+										<item id="room_id" _delta="define">
+											<rank>55</rank>
+										</item>
+									</items>
+								</item>
+							</items>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Enclosure" _created_in="itop-datacenter-mgmt" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Rack" _created_in="itop-datacenter-mgmt" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="PDU" _created_in="itop-datacenter-mgmt" _delta="if_exists">
+			<fields>
+				<field id="rack_id">
+					<filter _delta="redefine"><![CDATA[SELECT Rack WHERE room_id = :this->room_id]]></filter>
+					<dependencies _delta="redefine">
+						<attribute id="room_id"/>
+					</dependencies>
+				</field>
+			</fields>
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="TelephonyCI" _created_in="itop-enduser-devices" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Phone" _created_in="itop-enduser-devices" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="IPPhone" _created_in="itop-enduser-devices" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>55</rank>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="PC" _created_in="itop-enduser-devices" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="col:col1">
+							<items>
+								<item id="fieldset:Server:baseinfo">
+									<items>
+										<item id="room_id" _delta="define">
+											<rank>60</rank>
+										</item>
+									</items>
+								</item>
+							</items>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Printer" _created_in="itop-enduser-devices" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="col:col1">
+							<items>
+								<item id="fieldset:Server:baseinfo">
+									<items>
+										<item id="room_id" _delta="define">
+											<rank>60</rank>
+										</item>
+									</items>
+								</item>
+							</items>
+						</item>
+					</items>
+				</details>
+			</presentation>
+		</class>
+		<class id="Display" _created_in="sv-display-mgmt" _delta="if_exists">
+			<presentation>
+				<details>
+					<items>
+						<item id="col:col1">
+							<items>
+								<item id="fieldset:Server:baseinfo">
+									<items>
+										<item id="room_id" _delta="define">
+											<rank>60</rank>
+										</item>
+									</items>
+								</item>
+							</items>
+						</item>
+					</items>
+				</details>
+				<list>
+					<items>
+						<item id="room_id" _delta="define">
+							<rank>35</rank>
+						</item>
+					</items>
+				</list>
+			</presentation>
+		</class>
+	</classes>
+	<menus/>
+	<user_rights>
+		<groups>
+			<group id="General">
+				<classes>
+					<class id="Room" _delta="define"/>
+				</classes>
+			</group>
+		</groups>
+	</user_rights>
+	<dictionaries>
+		<dictionary id="EN US">
+			<entries>
+				<entry id="Class:Location/Attribute:room_list" _delta="define">Rooms</entry>
+				<entry id="Class:Location/Attribute:room_list+" _delta="define">All the rooms in this location</entry>
+				<entry id="Class:PhysicalDevice/Attribute:room_id" _delta="define">Room</entry>
+				<entry id="Class:Room" _delta="define">Room</entry>
+				<entry id="Class:Room/Attribute:floor" _delta="define">Floor</entry>
+				<entry id="Class:Room/Attribute:location_id" _delta="define">Location</entry>
+				<entry id="Class:Room/Attribute:name" _delta="define">Name</entry>
+				<entry id="Class:Room/Attribute:org_id" _delta="define">Organization</entry>
+				<entry id="Class:Room/Attribute:physicaldevice_list" _delta="define">Devices</entry>
+				<entry id="Class:Room/Attribute:physicaldevice_list+" _delta="define">All the devices in this room</entry>
+				<entry id="Class:Room/Attribute:status" _delta="define">Status</entry>
+				<entry id="Class:Room/Attribute:status/Value:active" _delta="define">Active</entry>
+				<entry id="Class:Room/Attribute:status/Value:inactive" _delta="define">Inactive</entry>
+			</entries>
+		</dictionary>
+		<dictionary id="NL NL">
+			<entries>
+				<entry id="Class:Location/Attribute:room_list" _delta="define">Kamers</entry>
+				<entry id="Class:Location/Attribute:room_list+" _delta="define">All the rooms in this location</entry>
+				<entry id="Class:PhysicalDevice/Attribute:room_id" _delta="define">Kamer</entry>
+				<entry id="Class:Room" _delta="define">Kamer</entry>
+				<entry id="Class:Room/Attribute:floor" _delta="define">Verdieping</entry>
+				<entry id="Class:Room/Attribute:location_id" _delta="define">Locatie</entry>
+				<entry id="Class:Room/Attribute:name" _delta="define">Naam</entry>
+				<entry id="Class:Room/Attribute:org_id" _delta="define">Organisatie</entry>
+				<entry id="Class:Room/Attribute:physicaldevice_list" _delta="define">Apparaten</entry>
+				<entry id="Class:Room/Attribute:physicaldevice_list+" _delta="define">Alle apparaten die zich bevinden in deze kamer</entry>
+				<entry id="Class:Room/Attribute:status" _delta="define">Status</entry>
+				<entry id="Class:Room/Attribute:status/Value:active" _delta="define">Actief</entry>
+				<entry id="Class:Room/Attribute:status/Value:inactive" _delta="define">Inactief</entry>
+			</entries>
+		</dictionary>
+	</dictionaries>
+</itop_design>
