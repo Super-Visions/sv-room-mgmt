@@ -396,7 +396,7 @@
 		<dictionary id="NL NL">
 			<entries>
 				<entry id="Class:Location/Attribute:room_list" _delta="define">Kamers</entry>
-				<entry id="Class:Location/Attribute:room_list+" _delta="define">All the rooms in this location</entry>
+				<entry id="Class:Location/Attribute:room_list+" _delta="define">Alle kamers in deze locatie</entry>
 				<entry id="Class:PhysicalDevice/Attribute:room_id" _delta="define">Kamer</entry>
 				<entry id="Class:Room" _delta="define">Kamer</entry>
 				<entry id="Class:Room/Attribute:floor" _delta="define">Verdieping</entry>
